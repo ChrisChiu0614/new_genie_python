@@ -12,6 +12,17 @@ line_bot_api = LineBotApi(os.getenv('CHANNEL_ACCESS_TOKEN'))
 handler = WebhookHandler(os.getenv('CHANNEL_SECRET'))
 news_api_key = os.getenv('NEWS_API_KEY')
 
+def fetch_news():
+    url = f'https://newsapi.org/v2/top-headlines?country=us&category=business&apiKey={news_api_key}'
+    responses = requests.get(url)
+    if requests.status_codes == 200:
+        news_data = responses.json()
+        articles = news_data['articles'][:5]
+        news_list = [f"{article['title']}: {article['url']}" for article in articles]
+        return '\n'.join(news_list)
+    else:
+        return "無法獲取新聞"
+
 @app.route("/", methods=['GET'])
 def index():
     return "Hello, this is the Line bot application."
@@ -49,18 +60,7 @@ def welcome(event):
     name = profile.display_name
     message = TextSendMessage(text=f'{name} 歡迎加入')
     line_bot_api.reply_message(event.reply_token, message)
-
-def fetch_news():
-    url = f'https://newsapi.org/v2/top-headlines?country=us&category=business&apiKey={news_api_key}'
-    responses = request.url(url)
-    if requests.status_codes == 200:
-        news_data = responses.json()
-        articles = news_data['articles'][:5]
-        news_list = [f"{article['title']}: {article['url']}" for article in articles]
-        return '\n'.join(news_list)
-    else:
-        return "無法獲取新聞"
-        
+    
 
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))
