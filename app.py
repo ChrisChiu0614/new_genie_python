@@ -4,6 +4,10 @@ from linebot.exceptions import InvalidSignatureError
 from linebot.models import *
 import requests
 import os
+from datetime import datetime, timedelta
+import schedule
+import time
+from threading import Thread
 
 app = Flask(__name__)
 
@@ -12,9 +16,16 @@ line_bot_api = LineBotApi(os.getenv('CHANNEL_ACCESS_TOKEN'))
 handler = WebhookHandler(os.getenv('CHANNEL_SECRET'))
 news_api_key = os.getenv('NEWS_API_KEY')
 
+#Attribute
+def get_dates():
+    today = datetime.now().strftime('%Y-%m-%d')
+    yesterday = (datetime.now()- timedelta(1).strftime('%Y-%m-%d'))
+    return yesterday, today
+
 def fetch_news():
     try:
-        url = f'https://newsapi.org/v2/top-headlines?country=us&category=business&apiKey={news_api_key}'
+        yesterday, today = get_dates()
+        url = f'https://newsapi.org/v2/top-headlines?country=us&category=business&from={yesterday}&to={today}&sortBy=popularity&apiKey={news_api_key}'
         response = requests.get(url)
         response.raise_for_status()  # 如果請求返回錯誤狀態碼，則引發 HTTPError
         news_data = response.json()
@@ -62,6 +73,16 @@ def welcome(event):
     message = TextSendMessage(text=f'{name} 歡迎加入')
     line_bot_api.reply_message(event.reply_token, message)
     
+def schedule_news_updates():
+    schedule.every().day.at("08:00").do(fetch_news)
+
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+
+# 啟動調度器
+schedule_thread = Thread(target=schedule_news_updates)
+schedule_thread.start()
 
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))
