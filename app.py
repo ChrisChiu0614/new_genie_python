@@ -34,6 +34,11 @@ def fetch_news():
         return '\n'.join(news_list)
     except requests.exceptions.RequestException as e:
         return "無法獲取新聞，請稍後再試。"
+    
+
+def send_daily_news():
+    news = fetch_news()
+    line_bot_api.broadcast(TextSendMessage(text=news))    
 
 @app.route("/", methods=['GET'])
 def index():
@@ -74,7 +79,8 @@ def welcome(event):
     line_bot_api.reply_message(event.reply_token, message)
     
 def schedule_news_updates():
-    schedule.every().day.at("08:00").do(fetch_news)
+    #schedule.every().day.at("08:00").do(fetch_news)
+    schedule.every().minute.do(send_daily_news)
 
     while True:
         schedule.run_pending()
