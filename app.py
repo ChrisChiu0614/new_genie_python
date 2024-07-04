@@ -13,15 +13,16 @@ handler = WebhookHandler(os.getenv('CHANNEL_SECRET'))
 news_api_key = os.getenv('NEWS_API_KEY')
 
 def fetch_news():
-    url = f'https://newsapi.org/v2/top-headlines?country=us&category=business&apiKey={news_api_key}'
-    responses = requests.get(url)
-    if requests.status_codes == 200:
-        news_data = responses.json()
+    try:
+        url = f'https://newsapi.org/v2/top-headlines?country=us&category=business&apiKey={news_api_key}'
+        response = requests.get(url)
+        response.raise_for_status()  # 如果請求返回錯誤狀態碼，則引發 HTTPError
+        news_data = response.json()
         articles = news_data['articles'][:5]
         news_list = [f"{article['title']}: {article['url']}" for article in articles]
         return '\n'.join(news_list)
-    else:
-        return "無法獲取新聞"
+    except requests.exceptions.RequestException as e:
+        return "無法獲取新聞，請稍後再試。"
 
 @app.route("/", methods=['GET'])
 def index():
