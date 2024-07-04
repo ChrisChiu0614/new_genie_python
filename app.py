@@ -19,7 +19,7 @@ news_api_key = os.getenv('NEWS_API_KEY')
 #Attribute
 def get_dates():
     today = datetime.now().strftime('%Y-%m-%d')
-    yesterday = (datetime.now()- timedelta(1).strftime('%Y-%m-%d'))
+    yesterday = (datetime.now()- timedelta(1)).strftime('%Y-%m-%d')
     return yesterday, today
 
 def fetch_news():
