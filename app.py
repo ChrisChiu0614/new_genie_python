@@ -79,8 +79,8 @@ def welcome(event):
     line_bot_api.reply_message(event.reply_token, message)
     
 def schedule_news_updates():
-    #schedule.every().day.at("08:00").do(fetch_news)
-    schedule.every().minute.do(send_daily_news)
+    schedule.every().day.at("08:00").do(fetch_news)
+    #schedule.every().minute.do(send_daily_news)
 
     while True:
         schedule.run_pending()
