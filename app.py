@@ -58,10 +58,10 @@ async def gpt_response(user_id, text):
                 'Content-Type': 'application/json'
             }
             json_data = {
-                "model": "gpt-3.5-turbo",
+                "model": "gpt-4-turbo",
                 "messages": user_context[user_id],
                 "temperature": 0.7,
-                "max_tokens": 150  # 减少最大token数量
+                "max_tokens": 300  # 减少最大token数量
             }
             async with session.post('https://api.openai.com/v1/chat/completions', headers=headers, json=json_data) as resp:
                 response = await resp.json()
@@ -122,16 +122,21 @@ def get_server_time():
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     msg = event.message.text
-    if msg == 'now':
+    if msg.lower() == 'news':
         news = fetch_news()
         formatted_news = format_news(news)
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=formatted_news))
-    elif msg == 'summary':
+    elif msg.lower() == 'summary':
         news = fetch_news()
         summaries = summarize_news(news)
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=summaries))
     else:
-        reply = f"你说了: {msg}"
+        reply = (
+        "Welcome to The News Genie. \n"
+        "1. Every morning at 8 AM, you'll receive the latest 5 US business news articles.\n"
+        "2. Type 'news' to manually fetch the latest 5 US business news articles.\n"
+        "3. Type 'summary' to get a summary of these 5 news articles."
+        )
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply))
 
 @handler.add(PostbackEvent)
