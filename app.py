@@ -31,7 +31,7 @@ def get_dates():
 def fetch_news():
     try:
         yesterday, today = get_dates()
-        url = f'https://newsapi.org/v2/top-headlines?country=us&category=business&from={yesterday}&to={today}&sortBy=popularity&apiKey={news_api_key}'
+        url = f'https://newsapi.org/v2/top-headlines/sources?country=us&category=business&from={yesterday}&to={today}&apiKey={news_api_key}'
         response = requests.get(url)
         response.raise_for_status()  # 如果请求返回错误状态码，则引发 HTTPError
         news_data = response.json()
@@ -58,7 +58,7 @@ async def gpt_response(user_id, text):
                 "model": "gpt-4-0314",
                 "messages": user_context[user_id],
                 "temperature": 0.7,
-                "max_tokens": 300  # 减少最大token数量
+                "max_tokens": 150  # 减少最大token数量
             }
             async with session.post('https://api.openai.com/v1/chat/completions', headers=headers, json=json_data) as resp:
                 response = await resp.json()
@@ -80,6 +80,12 @@ def summarize_news(articles):
         summaries.append(f"{idx + 1}. {article['title']}\n{summary}")
     loop.close()
     return '\n\n'.join(summaries)
+
+def format_news(articles):
+    formatted_news = []
+    for idx, article in enumerate(articles):
+        formatted_news.append(f"{idx + 1}. {article['title']}\n{article['url']}")
+    return '\n\n'.join(formatted_news)
 
 def send_daily_news():
     news = fetch_news()
@@ -112,7 +118,8 @@ def handle_message(event):
     msg = event.message.text
     if msg == 'now':
         news = fetch_news()
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=news))
+        formatted_news = format_news(news)
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=formatted_news))
     elif msg == 'summary':
         news = fetch_news()
         summaries = summarize_news(news)
