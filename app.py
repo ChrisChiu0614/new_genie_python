@@ -28,7 +28,7 @@ def get_dates():
 def fetch_news():
     try:
         yesterday, today = get_dates()
-        url = f'https://newsapi.org/v2/top-headlines?country=tw&category=business&from={yesterday}&to={today}&sortBy=popularity&apiKey={news_api_key}'
+        url = f'https://newsapi.org/v2/top-headlines?country=us&category=business&from={yesterday}&to={today}&sortBy=popularity&apiKey={news_api_key}'
         response = requests.get(url)
         response.raise_for_status()  # 如果請求返回錯誤狀態碼，則引發 HTTPError
         news_data = response.json()
@@ -95,7 +95,7 @@ def schedule_news_updates():
         send_daily_news()
         schedule_news_updates()
 
-    schedule.every().day.at("08:00").do(job)
+    schedule.every().day.at("22:09").do(job)
 
     while True:
         schedule.run_pending()
