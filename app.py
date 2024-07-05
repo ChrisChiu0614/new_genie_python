@@ -11,12 +11,11 @@ from threading import Thread
 import openai
 import aiohttp
 import asyncio
-from linebot.v3.messaging import MessagingApi
 
 app = Flask(__name__)
 
 # Line API 初始化
-line_bot_api = MessagingApi(channel_access_token=os.getenv('CHANNEL_ACCESS_TOKEN'))
+line_bot_api = LineBotApi(os.getenv('CHANNEL_ACCESS_TOKEN'))
 handler = WebhookHandler(os.getenv('CHANNEL_SECRET'))
 news_api_key = os.getenv('NEWS_API_KEY')
 openai.api_key = os.getenv('OPENAI_API_KEY')
@@ -98,7 +97,7 @@ def send_daily_news():
     news = fetch_news()
     if news:
         summaries = summarize_news(news)
-        line_bot_api.broadcast(messages=[TextSendMessage(text=summaries)])
+        line_bot_api.broadcast(TextSendMessage(text=summaries))
 
 @app.route("/", methods=['GET'])
 def index():
@@ -126,14 +125,14 @@ def handle_message(event):
     if msg == 'now':
         news = fetch_news()
         formatted_news = format_news(news)
-        line_bot_api.reply_message(reply_token=event.reply_token, messages=[TextSendMessage(text=formatted_news)])
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=formatted_news))
     elif msg == 'summary':
         news = fetch_news()
         summaries = summarize_news(news)
-        line_bot_api.reply_message(reply_token=event.reply_token, messages=[TextSendMessage(text=summaries)])
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=summaries))
     else:
         reply = f"你说了: {msg}"
-        line_bot_api.reply_message(reply_token=event.reply_token, messages=[TextSendMessage(text=reply)])
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply))
 
 @handler.add(PostbackEvent)
 def handle_postback(event):
@@ -146,7 +145,7 @@ def welcome(event):
     profile = line_bot_api.get_group_member_profile(gid, uid)
     name = profile.display_name
     message = TextSendMessage(text=f'{name} 欢迎加入')
-    line_bot_api.reply_message(reply_token=event.reply_token, messages=[message])
+    line_bot_api.reply_message(event.reply_token, message)
 
 def schedule_news_updates():
     # 设置调度时间为UTC 15:04 (台湾时间的23:04) 和 00:00 (台湾时间的08:00)
