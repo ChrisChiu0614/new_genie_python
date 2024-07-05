@@ -83,19 +83,20 @@ def welcome(event):
     
 def schedule_news_updates():
     taiwan_tz = pytz.timezone('Asia/Taipei')
-    now = datetime.now(taiwan_tz)
-    target_time = now.replace(hour=8, minute=0, second=0, microsecond=0)
+    target_time = datetime.now(taiwan_tz).replace(hour=22, minute=15, second=0, microsecond=0)
     
-    if now > target_time:
+    if datetime.now(taiwan_tz) > target_time:
         target_time += timedelta(days=1)
-    
-    delay = (target_time - now).total_seconds()
+
+    delay = (target_time - datetime.now(taiwan_tz)).total_seconds()
 
     def job():
         send_daily_news()
-        schedule_news_updates()
+        schedule_news_updates()  # 重新設置下一次調度
 
-    schedule.every().day.at("22:09").do(job)
+    time.sleep(delay)
+    job()  # 第一次立即執行
+    schedule.every().day.at("22:15").do(job)  # 之後每天固定時間執行
 
     while True:
         schedule.run_pending()
