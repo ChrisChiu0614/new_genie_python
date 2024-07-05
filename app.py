@@ -89,7 +89,7 @@ def schedule_news_updates():
     def job():
         send_daily_news()
 
-    schedule.every().day.at("22:20").do(job)  # 設置為台灣時間晚上10:20
+    schedule.every().day.at("22:24").do(job)  # 設置為台灣時間晚上10:20
 
     while True:
         schedule.run_pending()
