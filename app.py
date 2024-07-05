@@ -31,12 +31,15 @@ def get_dates():
 def fetch_news():
     try:
         yesterday, today = get_dates()
-        url = f'https://newsapi.org/v2/top-headlines/sources?country=us&category=business&from={yesterday}&to={today}&apiKey={news_api_key}'
+        url = f'https://newsapi.org/v2/top-headlines?country=us&category=business&from={yesterday}&to={today}&apiKey={news_api_key}'
         response = requests.get(url)
         response.raise_for_status()  # 如果请求返回错误状态码，则引发 HTTPError
         news_data = response.json()
+        if 'articles' not in news_data:
+            app.logger.error(f"Unexpected response format: {news_data}")
+            return []
         articles = news_data['articles'][:5]
-        news_list = [{'title': article['title'], 'url': article['url'], 'content': article['description']} for article in articles]
+        news_list = [{'title': article['title'], 'url': article['url'], 'content': article.get('description', 'No description available')} for article in articles]
         return news_list
     except requests.exceptions.RequestException as e:
         app.logger.error(f"Error fetching news: {e}")
@@ -62,11 +65,14 @@ async def gpt_response(user_id, text):
             }
             async with session.post('https://api.openai.com/v1/chat/completions', headers=headers, json=json_data) as resp:
                 response = await resp.json()
+                if 'choices' not in response or len(response['choices']) == 0:
+                    app.logger.error(f"Unexpected response format from GPT-3: {response}")
+                    return "Error in GPT response."
                 answer = response['choices'][0]['message']['content']
                 user_context[user_id].append({"role": "assistant", "content": answer})
                 return answer
     except Exception as e:
-        print(f"Error in GPT_response: {str(e)}")
+        app.logger.error(f"Error in GPT_response: {str(e)}")
         return "Error in GPT response."
 
 def summarize_news(articles):
