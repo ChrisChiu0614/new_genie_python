@@ -2,14 +2,12 @@ from flask import Flask, request, abort
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import *
-import os
 import requests
-import logging
+import os
 from datetime import datetime, timedelta
 import schedule
 import time
 from threading import Thread
-import pytz
 
 app = Flask(__name__)
 
@@ -18,13 +16,12 @@ line_bot_api = LineBotApi(os.getenv('CHANNEL_ACCESS_TOKEN'))
 handler = WebhookHandler(os.getenv('CHANNEL_SECRET'))
 news_api_key = os.getenv('NEWS_API_KEY')
 
-# 獲取日期
+#Attribute
 def get_dates():
     today = datetime.now().strftime('%Y-%m-%d')
-    yesterday = (datetime.now() - timedelta(1)).strftime('%Y-%m-%d')
+    yesterday = (datetime.now()- timedelta(1)).strftime('%Y-%m-%d')
     return yesterday, today
 
-# 獲取新聞
 def fetch_news():
     try:
         yesterday, today = get_dates()
@@ -36,13 +33,12 @@ def fetch_news():
         news_list = [f"{article['title']}: {article['url']}" for article in articles]
         return '\n'.join(news_list)
     except requests.exceptions.RequestException as e:
-        logging.error(f"HTTP request failed: {e}")
         return "無法獲取新聞，請稍後再試。"
+    
 
-# 發送每日新聞
 def send_daily_news():
     news = fetch_news()
-    line_bot_api.broadcast(TextSendMessage(text=news))
+    line_bot_api.broadcast(TextSendMessage(text=news))    
 
 @app.route("/", methods=['GET'])
 def index():
@@ -61,13 +57,10 @@ def callback():
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    msg = event.message.text.lower()
+    msg = event.message.text
     if msg == 'now':
         news = fetch_news()
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=news))
-    elif msg == 'jobs':
-        jobs_info = get_scheduled_jobs_info()
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=jobs_info))
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=news)) 
     else:
         reply = f"你說了: {msg}"
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply))
@@ -84,34 +77,10 @@ def welcome(event):
     name = profile.display_name
     message = TextSendMessage(text=f'{name} 歡迎加入')
     line_bot_api.reply_message(event.reply_token, message)
-
-# 打印所有調度任務
-scheduled_jobs = []
-
-def print_scheduled_jobs():
-    global scheduled_jobs
-    jobs = schedule.get_jobs()
-    scheduled_jobs = [f"Job: {job.job_func}, Next Run Time: {job.next_run}" for job in jobs]
-    for job in scheduled_jobs:
-        print(job)
-
-# 獲取調度任務信息
-def get_scheduled_jobs_info():
-    if scheduled_jobs:
-        return '\n'.join(scheduled_jobs)
-    else:
-        return "目前沒有調度任務。"
-
-# 調度每日新聞更新
+    
 def schedule_news_updates():
-    taiwan_tz = pytz.timezone('Asia/Taipei')
-
-    def job():
-        send_daily_news()
-
-    schedule.every().day.at("22:37").do(job)  
-
-    print_scheduled_jobs()  # 打印所有調度任務
+    schedule.every().day.at("22:45").do(send_daily_news)
+    #schedule.every().minute.do(send_daily_news)
 
     while True:
         schedule.run_pending()
