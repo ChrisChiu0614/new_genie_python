@@ -48,7 +48,7 @@ def fetch_news():
 async def gpt_response(user_id, text):
     try:
         if user_id not in user_context:
-            user_context[user_id] = [{"role": "system", "content": "You are a helpful assistant."}]
+            user_context[user_id] = [{"role": "system", "content": "You are a professional news summarization expert. Your task is to provide concise and accurate summaries of news articles. Ensure the summaries capture the key points and are easy to understand."}]
         
         user_context[user_id].append({"role": "user", "content": text})
         
@@ -58,7 +58,7 @@ async def gpt_response(user_id, text):
                 'Content-Type': 'application/json'
             }
             json_data = {
-                "model": "gpt-4-turbo",
+                "model": "gpt-3.5-turbo",
                 "messages": user_context[user_id],
                 "temperature": 0.7,
                 "max_tokens": 300  # 减少最大token数量
@@ -81,7 +81,8 @@ def summarize_news(articles):
     asyncio.set_event_loop(loop)
 
     for idx, article in enumerate(articles):
-        prompt = f"Summarize the following news article:\n\n{article['content']}"
+        #prompt = f"Summarize the following news article:\n\n{article['content']}"
+        prompt = f"Summarize the following news article in approximately 150 words. Make sure to include the main events, key figures, dates, locations, and any significant outcomes or implications. Provide enough detail to give a clear and comprehensive overview of the article:\n\n{article['content']}"
         summary = loop.run_until_complete(gpt_response("summary_user", prompt))
         summaries.append(f"{idx + 1}. {article['title']}\n{summary}")
     loop.close()
