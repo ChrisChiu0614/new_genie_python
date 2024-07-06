@@ -30,10 +30,11 @@ def get_dates():
 
 def fetch_news():
     try:
-        yesterday, today = get_dates()
-        url = f'https://newsapi.org/v2/top-headlines?country=us&category=business&from={yesterday}&to={today}&apiKey={news_api_key}'
+        #yesterday, today = get_dates()
+        #url = f'https://newsapi.org/v2/top-headlines?country=us&category=business&from={yesterday}&to={today}&apiKey={news_api_key}'
+        url = f'https://newsapi.org/v2/top-headlines?country=us&category=business&apiKey={news_api_key}'
         response = requests.get(url)
-        response.raise_for_status()  # 如果请求返回错误状态码，则引发 HTTPError
+        response.raise_for_status()
         news_data = response.json()
         if 'articles' not in news_data:
             app.logger.error(f"Unexpected response format: {news_data}")
@@ -157,7 +158,7 @@ def welcome(event):
     line_bot_api.reply_message(event.reply_token, message)
 
 def schedule_news_updates():
-    # 设置调度时间为UTC 15:04 (台湾时间的23:04) 和 00:00 (台湾时间的08:00)
+    # set time zone UTC 00:00 = TW 08:00)
     schedule.every().day.at("00:00").do(send_daily_news)
     app.logger.info("Scheduler started")
 
@@ -165,7 +166,7 @@ def schedule_news_updates():
         schedule.run_pending()
         time.sleep(1)
 
-# 启动调度器
+# start thread
 schedule_thread = Thread(target=schedule_news_updates)
 schedule_thread.start()
 
