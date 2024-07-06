@@ -83,9 +83,7 @@ def summarize_news(articles):
 
     for idx, article in enumerate(articles):
         #prompt = f"Summarize the following news article:\n\n{article['content']}"
-        prompt = f"Summarize the following news article in approximately 100 words.
-          Make sure to include the main events, key figures, dates, locations, and any significant outcomes 
-          or implications. Provide enough detail to give a clear and comprehensive overview of the article:\n\n{article['content']}"
+        prompt = f"Summarize the following news article in approximately 100 words. Make sure to include the main events, key figures, dates, locations, and any significant outcomes or implications. Provide enough detail to give a clear and comprehensive overview of the article:\n\n{article['content']}"
         summary = loop.run_until_complete(gpt_response("summary_user", prompt))
         summaries.append(f"{idx + 1}. {article['title']}\n{summary}")
     loop.close()
