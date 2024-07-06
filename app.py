@@ -82,7 +82,9 @@ def summarize_news(articles):
 
     for idx, article in enumerate(articles):
         #prompt = f"Summarize the following news article:\n\n{article['content']}"
-        prompt = f"Summarize the following news article in approximately 150 words. Make sure to include the main events, key figures, dates, locations, and any significant outcomes or implications. Provide enough detail to give a clear and comprehensive overview of the article:\n\n{article['content']}"
+        prompt = f"Summarize the following news article in approximately 100 words.
+          Make sure to include the main events, key figures, dates, locations, and any significant outcomes 
+          or implications. Provide enough detail to give a clear and comprehensive overview of the article:\n\n{article['content']}"
         summary = loop.run_until_complete(gpt_response("summary_user", prompt))
         summaries.append(f"{idx + 1}. {article['title']}\n{summary}")
     loop.close()
@@ -97,8 +99,9 @@ def format_news(articles):
 def send_daily_news():
     news = fetch_news()
     if news:
-        summaries = summarize_news(news)
-        line_bot_api.broadcast(TextSendMessage(text=summaries))
+        news = fetch_news()
+        formatted_news = format_news(news)
+        line_bot_api.broadcast(TextSendMessage(text=formatted_news))
 
 @app.route("/", methods=['GET'])
 def index():
