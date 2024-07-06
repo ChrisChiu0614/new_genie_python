@@ -32,7 +32,7 @@ def fetch_news():
     try:
         #yesterday, today = get_dates()
         #url = f'https://newsapi.org/v2/top-headlines?country=us&category=business&from={yesterday}&to={today}&apiKey={news_api_key}'
-        url = f'https://newsapi.org/v2/top-headlines?country=us&category=business&apiKey={news_api_key}'
+        url = f'https://newsapi.org/v2/everything?domains=wsj.com&apiKey={news_api_key}'
         response = requests.get(url)
         response.raise_for_status()
         news_data = response.json()
